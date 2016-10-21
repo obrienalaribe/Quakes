@@ -5,7 +5,7 @@ struct Quake : CustomStringConvertible {
     var timestamp : Date?
     var latitude : Double?
     var longitude : Double?
-    var depth : Double? //Could be a float ?
+    var depth : Double?
     var magnitude : Double?
     
     var description: String {
@@ -63,11 +63,8 @@ class QuakeFeed : CustomStringConvertible {
         self.init(level: level, period: period, dataset: nil)
 
         if validProperties(inputLevel: level, inputPeriod: period){
-            let path = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/\(self.level)_\(self.period).csv"
-            
-            self.fetchQuakeFeed(from: path)
+            self.update()
         }
-        
     }
     
     init(level: String, period: String, dataset: [Quake]?){
@@ -77,10 +74,6 @@ class QuakeFeed : CustomStringConvertible {
         if let quakeRecords = dataset {
             self.dataset = quakeRecords
         }
-    }
-    
-    func update(){
-        //TODO
     }
     
     func meanDepth() -> Double? {
@@ -165,14 +158,18 @@ class QuakeFeed : CustomStringConvertible {
     }
     
     /**
-       This function will fetch Quake Feeds from the given endpoint and create a dataset
-       of Quake records
-
-     - parameter HTTP endpoint.
+       This function will fetch Quake Feed updates and replaces any existing stored Quake objects with new objects
      
      - returns: Void
      */
-    private func fetchQuakeFeed(from path: String){
+    func update(){
+        //check and replace existing objects
+        if dataset.isEmpty == false {
+            dataset.removeAll()
+        }
+        
+        let path = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/\(self.level)_\(self.period).csv"
+        
         if let url = URL(string: path) {
             do {
                 let contents = try String(contentsOf: url)
@@ -258,8 +255,11 @@ if let meanMag = feed.meanMagnitude() {
     print("mean magnitude: \(meanMag)")
 }
 
+feed.update()
+print(feed.dataSize)
 
+feed.update()
+print(feed.dataSize)
 
-
-
-
+feed.update()
+print(feed.dataSize)
